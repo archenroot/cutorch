@@ -8,7 +8,7 @@ FIND_PACKAGE(CUDA 6.5 REQUIRED)
 FIND_PACKAGE(MAGMA)
 
 IF (NOT WIN32)
-SET(CMAKE_C_FLAGS "-std=c99 -Werror=implicit-function-declaration ${CMAKE_C_FLAGS}")
+SET(CMAKE_C_FLAGS "-std=c++14 -Werror=implicit-function-declaration ${CMAKE_C_FLAGS}")
 ENDIF (NOT WIN32)
 IF(CUDA_HAS_FP16 OR NOT ${CUDA_VERSION} LESS 7.5)
   ADD_DEFINITIONS(-DTH_GENERIC_USE_HALF=1)
@@ -23,14 +23,28 @@ INCLUDE_DIRECTORIES(BEFORE "${CMAKE_CURRENT_BINARY_DIR}/lib/THC")
 INCLUDE_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}/lib/THC")
 INCLUDE_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}/torch")
 
-SET(src Storage.c init.c Tensor.c TensorMath.c TensorOperator.c torch/utils.c)
-SET(luasrc init.lua Tensor.lua FFI.lua test/test.lua)
+SET(src 
+	"${CMAKE_CURRENT_SOURCE_DIR}/Storage.c"
+	"${CMAKE_CURRENT_SOURCE_DIR}/init.c"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Tensor.c"
+	"${CMAKE_CURRENT_SOURCE_DIR}/TensorMath.c"
+	"${CMAKE_CURRENT_SOURCE_DIR}/TensorOperator.c"
+	"${CMAKE_CURRENT_SOURCE_DIR}/torch/utils.c" )
+SET(luasrc 
+	"${CMAKE_CURRENT_SOURCE_DIR}/init.lua"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Tensor.lua"
+	"${CMAKE_CURRENT_SOURCE_DIR}/FFI.lua"
+	"${CMAKE_CURRENT_SOURCE_DIR}/test/test.lua"
+	"${CMAKE_CURRENT_SOURCE_DIR}/test/test_shutdown.lua" )
 
-ADD_TORCH_WRAP(cudatensormathwrap TensorMath.lua)
+# Install LUA source files
+INSTALL(FILES ${luasrc} DESTINATION ${LUADIR}/cutorch)
 
-ADD_TORCH_PACKAGE(cutorch "${src}" "${luasrc}")
+# Install compiled C libraries
+INSTALL(TARGETS cutorch LIBRARY DESTINATION ${LUA_LIBDIR} )
 TARGET_LINK_LIBRARIES(cutorch luaT THC)
 
 IF(LUALIB)
   TARGET_LINK_LIBRARIES(cutorch ${LUALIB})
 ENDIF()
+
