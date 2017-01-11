@@ -41,6 +41,7 @@ SET(luasrc
 INSTALL(FILES ${luasrc} DESTINATION ${LUADIR}/cutorch)
 
 # Install compiled C libraries
+SET(GCC_COVERAGE_LINK_FLAGS    "-lpthread")
 INSTALL(TARGETS cutorch LIBRARY DESTINATION ${LUA_LIBDIR} )
 TARGET_LINK_LIBRARIES(cutorch luaT THC)
 
